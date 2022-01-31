@@ -26,7 +26,7 @@ jobs:
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
-        run: "VERSION=$(git tag --sort=-v:refname --list "v[0-9]*" | head -n 1 | cut -c 2-)" >> $GITHUB_ENV
+        run: echo "VERSION=$(git tag --sort=-v:refname --list "v[0-9]*" | head -n 1 | cut -c 2-)" >> $GITHUB_ENV
         with:
           context: ./
           file: ./Dockerfile
