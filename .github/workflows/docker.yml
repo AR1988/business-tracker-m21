@@ -30,7 +30,7 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags:  ${{ secrets.DOCKER_HUB_USERNAME }}/bt-backend:latest
+          tags:  ${{ secrets.DOCKER_HUB_USERNAME }}/bt-backend:$(date +%s)
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
       - name: Image digest
