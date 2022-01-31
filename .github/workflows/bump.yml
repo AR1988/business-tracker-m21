@@ -10,9 +10,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Bump version
       run: |
-        git config --global user.email "andre.reutow@gmail.com"
+        git config --global user.email "github+actions@gmail.com"
         git config --global user.name "Actions"
         git fetch --tags
         wget -O - https://raw.githubusercontent.com/treeder/bump/master/gitbump.sh | bash
-        version=$(git tag --sort=-refname --list "v[0-9]*" | head -n 1)
-        echo "new version $version
