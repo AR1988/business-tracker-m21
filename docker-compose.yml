@@ -2,8 +2,6 @@ version: "3.9"
 services:
   app:
     image: "ar1988/bt-backend:latest"
-    build:
-      context: .
     container_name: bt-backend
     depends_on:
       - db
