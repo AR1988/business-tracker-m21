@@ -17,7 +17,7 @@ public class OpenApi3Config {
 
     private Info apiInfo() {
         return new Info()
-                .title("Business-Tracker-1")
+                .title("Business tracker")
                 .description("This is project of students Tel-Ran.de college")
                 .version("1.0")
                 .contact(apiContact())

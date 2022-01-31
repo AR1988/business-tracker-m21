@@ -1,6 +1,7 @@
 ## Run spring boot
 
 `````shell
+docker pull ar1988/bt-backend:latest
 docker-compose up
 `````
 
