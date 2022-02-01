@@ -2,7 +2,7 @@ name: CI to Docker Hub
 
 on:
   push:
-    branches: [ docker-ci ]
+    branches: [ docker ]
 
 jobs:
   build:
@@ -29,7 +29,7 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/bt-backend:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/bt-complete:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
       - name: Image digest

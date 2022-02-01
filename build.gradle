@@ -51,27 +51,3 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-
-ext {
-    uiBuildDirectory = "src/main/resources/static"
-}
-
-//Ui build
-task copyUiBuild(type: Copy) {
-    dependsOn('buildReactApp')
-    dependsOn('clearUiBuild')
-    from("${projectDir}/src/main/webapp/build")
-    into(project.ext.uiBuildDirectory)
-}
-
-task buildReactApp(type: NpxTask) {
-    dependsOn npmInstall
-    command = 'react-scripts'
-    args = ['build']
-}
-
-task clearUiBuild(type: Delete) {
-    def files = file(project.ext.uiBuildDirectory).listFiles()
-    if (files)
-        delete(files)
-}

@@ -1,2 +1,4 @@
-target
-src/main/webapp
+build
+src/main/webapp/build/
+src/main/webapp/node_modules/
+src/main/resources/*application.properties
