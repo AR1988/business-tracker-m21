@@ -5,6 +5,7 @@ import de.telran.businesstracker.model.Roadmap;
 import de.telran.businesstracker.model.User;
 import de.telran.businesstracker.repositories.ProjectRepository;
 import de.telran.businesstracker.repositories.RoadmapRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -15,6 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,19 +37,20 @@ class RoadmapServiceTest {
     @InjectMocks
     RoadmapService roadmapService;
 
+
+    private Project project;
+    private Roadmap roadmap;
+
+    @BeforeEach
+    public void beforeEachTest() {
+        User user = new User(5L, "Ivan", "Petrov", "Boss", "img-url", new LinkedHashSet<>(), new ArrayList<>());
+        project = new Project(4L, "Great project", user, new LinkedHashSet<>(), new LinkedHashSet<>());
+        roadmap = new Roadmap(3L, "Roadmap", LocalDate.now(), project, new LinkedHashSet<>());
+    }
+
     @Test
     public void testAdd_success() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
-
-        Roadmap roadmap = Roadmap.builder()
-                .id(1L)
-                .name("Roadmap")
-                .startDate(LocalDate.now())
-                .project(project)
-                .build();
 
         roadmapService.add(roadmap.getName(), roadmap.getStartDate(), roadmap.getProject().getId());
 
@@ -59,17 +63,21 @@ class RoadmapServiceTest {
     }
 
     @Test
+    public void testAdd_success_StartDeteNull() {
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+
+        roadmapService.add(roadmap.getName(), null, roadmap.getProject().getId());
+
+        verify(roadmapRepository, times(1)).save(any());
+        verify(roadmapRepository, times(1))
+                .save(argThat(savedRoadmap -> savedRoadmap.getName().equals(roadmap.getName()) &&
+                        savedRoadmap.getStartDate().equals(LocalDate.now()) &&
+                        savedRoadmap.getProject().getId().equals(project.getId()))
+                );
+    }
+
+    @Test
     public void testAdd_projectDoesNotExist_EntityNotFoundException() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-
-        Roadmap roadmap = Roadmap.builder()
-                .id(1L)
-                .name("Roadmap")
-                .startDate(LocalDate.now())
-                .project(project)
-                .build();
-
         Exception exception = assertThrows(EntityNotFoundException.class, () ->
                 roadmapService.add(roadmap.getName(), roadmap.getStartDate(), roadmap.getProject().getId() + 1));
 
@@ -79,17 +87,6 @@ class RoadmapServiceTest {
 
     @Test
     public void roadmapEdit_roadmapExist_fieldsChanged() {
-
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-
-        Roadmap roadmap = Roadmap.builder()
-                .id(1L)
-                .name("Roadmap")
-                .startDate(LocalDate.now())
-                .project(project)
-                .build();
-
         String newName = "New roadmap";
         LocalDate newStartDay = LocalDate.now().plusDays(1);
 
@@ -106,16 +103,6 @@ class RoadmapServiceTest {
 
     @Test
     void testGetById_objectExist() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-
-        Roadmap roadmap = Roadmap.builder()
-                .id(1L)
-                .name("Roadmap")
-                .startDate(LocalDate.now())
-                .project(project)
-                .build();
-
         when(roadmapRepository.findById(roadmap.getId())).thenReturn(Optional.of(roadmap));
         Roadmap expectedRoadmap = roadmapService.getById(roadmap.getId());
 
@@ -129,16 +116,6 @@ class RoadmapServiceTest {
 
     @Test
     void testGetById_objectNotExist() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-
-        Roadmap roadmap = Roadmap.builder()
-                .id(1L)
-                .name("Roadmap")
-                .startDate(LocalDate.now())
-                .project(project)
-                .build();
-
         Exception exception = assertThrows(EntityNotFoundException.class,
                 () -> roadmapService.getById(roadmap.getId() + 1));
 
@@ -152,16 +129,6 @@ class RoadmapServiceTest {
 
     @Test
     void removeById_oneObjectDeleted() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-
-        Roadmap roadmap = Roadmap.builder()
-                .id(1L)
-                .name("Roadmap")
-                .startDate(LocalDate.now())
-                .project(project)
-                .build();
-
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
 
         roadmapService.add(roadmap.getName(), roadmap.getStartDate(), roadmap.getProject().getId());

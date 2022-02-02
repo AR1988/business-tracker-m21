@@ -26,7 +26,9 @@ public class RoadmapService {
 
     public Roadmap add(String name, LocalDate startDate, Long projectId) {
         Project project = projectRepository.findById(projectId).orElseThrow(() -> new EntityNotFoundException(PROJECT_DOES_NOT_EXIST));
-        Roadmap roadmap = Roadmap.builder().name(name).startDate(startDate).project(project).build();
+        if (startDate == null)
+            startDate = LocalDate.now();
+        Roadmap roadmap = new Roadmap(name, startDate, project);
         roadmapRepository.save(roadmap);
         return roadmap;
     }

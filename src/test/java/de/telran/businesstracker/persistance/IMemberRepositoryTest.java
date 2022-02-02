@@ -5,6 +5,7 @@ import de.telran.businesstracker.model.Project;
 import de.telran.businesstracker.model.Roadmap;
 import de.telran.businesstracker.model.User;
 import de.telran.businesstracker.repositories.MemberRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -25,43 +26,36 @@ public class IMemberRepositoryTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    private User user;
+    private Roadmap roadmap;
+    private Project project;
+
+    private User user2;
+    private Project project2;
+
+    @BeforeEach
+    public void beforeEachTest() {
+        user = new User("Ivan", "Petrov", "Boss", "img-url");
+        project = new Project("Great project", user);
+        roadmap = new Roadmap("Roadmap", LocalDate.now(), project);
+        Member member = new Member(project, user);
+
+        user2 = new User("2 Ivan", "2 Petrov", "2 Boss", "2 img-url");
+        project2 = new Project("2 Great project", user2);
+    }
+
     @Test
     public void testFindByProject_oneProject_fourRecordsFound() {
-        User user = new User();
-        Project project = Project
-                .builder()
-                .user(user)
-                .name("Some project name")
-                .build();
-
-        Roadmap roadmap = Roadmap.
-                builder()
-                .project(project)
-                .name("RM_01")
-                .startDate(LocalDate.now())
-                .build();
 
         entityManager.persist(user);
         entityManager.persist(project);
         entityManager.persist(roadmap);
 
         List<Member> members = Arrays.asList(
-                Member.builder()
-                        .project(project)
-                        .user(user)
-                        .build(),
-                Member.builder()
-                        .project(project)
-                        .user(user)
-                        .build(),
-                Member.builder()
-                        .project(project)
-                        .user(user)
-                        .build(),
-                Member.builder()
-                        .project(project)
-                        .user(user)
-                        .build()
+                new Member(project, user),
+                new Member(project, user),
+                new Member(project, user),
+                new Member(project, user)
         );
 
         members.forEach(member -> entityManager.persist(member));
@@ -80,19 +74,6 @@ public class IMemberRepositoryTest {
 
     @Test
     public void testFindByProjectAndActive_twoProject_twoRecordsFound() {
-        User user = new User();
-        Project project = Project
-                .builder()
-                .user(user)
-                .name("Some project name")
-                .build();
-
-        User user2 = new User();
-        Project project2 = Project
-                .builder()
-                .user(user)
-                .name("Some project name 2")
-                .build();
 
         entityManager.persist(user);
         entityManager.persist(user2);
@@ -101,22 +82,10 @@ public class IMemberRepositoryTest {
         entityManager.persist(project2);
 
         List<Member> members = Arrays.asList(
-                Member.builder()
-                        .project(project)
-                        .user(user2)
-                        .build(),
-                Member.builder()
-                        .project(project)
-                        .user(user)
-                        .build(),
-                Member.builder()
-                        .project(project2)
-                        .user(user)
-                        .build(),
-                Member.builder()
-                        .project(project2)
-                        .user(user2)
-                        .build()
+                new Member(project, user2),
+                new Member(project, user),
+                new Member(project2, user),
+                new Member(project2, user2)
         );
 
         members.forEach(member -> entityManager.persist(member));
@@ -133,29 +102,13 @@ public class IMemberRepositoryTest {
 
     @Test
     public void testFindByProjectAndActive_twoProject_noRecordsFound() {
-        User user = new User();
-        Project project = Project
-                .builder()
-                .user(user)
-                .name("Some project name")
-                .build();
-
-        User user2 = new User();
-        Project project2 = Project
-                .builder()
-                .user(user)
-                .name("Some project name 2")
-                .build();
 
         entityManager.persist(user);
         entityManager.persist(project);
         entityManager.persist(user2);
         entityManager.persist(project2);
 
-        Member member = Member.builder()
-                .project(project2)
-                .user(user2)
-                .build();
+        Member member = new Member(project2, user2);
 
         entityManager.persist(member);
 

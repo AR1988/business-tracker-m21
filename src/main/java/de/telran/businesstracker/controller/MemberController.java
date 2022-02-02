@@ -1,5 +1,6 @@
 package de.telran.businesstracker.controller;
 
+import de.telran.businesstracker.controller.dto.AddMemberDto;
 import de.telran.businesstracker.controller.dto.MemberDto;
 import de.telran.businesstracker.mapper.MemberMapper;
 import de.telran.businesstracker.model.Member;
@@ -28,7 +29,7 @@ public class MemberController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public MemberDto addMember(@RequestBody @Valid MemberDto memberDto) {
+    public MemberDto addMember(@RequestBody @Valid AddMemberDto memberDto) {
         Member member = memberService.add(memberDto.projectId, memberDto.userId);
         return memberMapper.toDto(member);
     }

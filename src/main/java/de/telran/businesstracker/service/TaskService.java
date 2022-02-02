@@ -33,22 +33,21 @@ public class TaskService {
         this.projectRepository = projectRepository;
     }
 
-    public Task add(String name, boolean finished, boolean active, String delivery, Long milestoneId, Long memberId) {
+    public Task add(String name, boolean finished, boolean active, Long milestoneId, Long memberId) {
         Member responsibleMember = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException(MEMBER_DOES_NOT_EXIST));
         Milestone milestone = milestoneRepository.findById(milestoneId).orElseThrow(() -> new EntityNotFoundException(MILESTONE_DOES_NOT_EXIST));
 
-        Task task = new Task(name, finished, active, delivery, milestone, responsibleMember);
+        Task task = new Task(name, finished, active, milestone, responsibleMember);
 
         return taskRepository.save(task);
     }
 
-    public void edit(Long id, String name, boolean finished, boolean active, String delivery) {
+    public void edit(Long id, String name, boolean finished, boolean active) {
         Task task = getById(id);
 
         task.setName(name);
         task.setFinished(finished);
         task.setActive(active);
-        task.setDelivery(delivery);
 
         taskRepository.save(task);
     }

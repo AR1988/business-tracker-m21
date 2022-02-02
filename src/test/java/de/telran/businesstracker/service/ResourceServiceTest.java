@@ -1,11 +1,9 @@
 package de.telran.businesstracker.service;
 
-import de.telran.businesstracker.model.Member;
-import de.telran.businesstracker.model.Milestone;
-import de.telran.businesstracker.model.Resource;
-import de.telran.businesstracker.model.Task;
+import de.telran.businesstracker.model.*;
 import de.telran.businesstracker.repositories.ResourceRepository;
 import de.telran.businesstracker.repositories.TaskRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -15,7 +13,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,22 +35,24 @@ class ResourceServiceTest {
     @InjectMocks
     ResourceService resourceService;
 
+    private Task task;
+    private Resource resource;
+
+    @BeforeEach
+    public void beforeEachTest() {
+        User user = new User(5L, "Ivan", "Petrov", "Boss", "img-url", new LinkedHashSet<>(), new ArrayList<>());
+        Project project = new Project(4L, "Great project", user, new LinkedHashSet<>(), new LinkedHashSet<>());
+        Roadmap roadmap = new Roadmap(3L, "Roadmap", LocalDate.now(), project, new LinkedHashSet<>());
+        Milestone milestone = new Milestone(1L, "Milestone", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>(), new LinkedHashSet<>());
+        Member member = new Member(13L, new Project(), new User());
+
+        task = new Task(9L, "Task", false, false,  milestone, member, new ArrayList<>());
+        resource = new Resource(1L, "Resource", 100, 1290.00, task);
+    }
+
     @Test
     public void testAdd_success() {
-        Member member = new Member();
-        Milestone milestone = new Milestone();
-        Task task = new Task(2L, "Task", false, false, "Document", milestone, new ArrayList<>(), member);
-
         when(taskRepository.findById(task.getId())).thenReturn(Optional.of(task));
-
-        Resource resource = Resource.builder()
-                .id(1L)
-                .name("Resource")
-                .hours(100)
-                .cost(1290.00)
-                .task(task)
-                .build();
-
 
         resourceService.add(resource.getName(), resource.getHours(), resource.getCost(),
                 resource.getTask().getId());
@@ -66,18 +68,6 @@ class ResourceServiceTest {
 
     @Test
     public void testAdd_taskDoesNotExist_EntityNotFoundException() {
-        Member member = new Member();
-        Milestone milestone = new Milestone();
-        Task task = new Task(2L, "Task", false, false, "Document", milestone, new ArrayList<>(), member);
-
-        Resource resource = Resource.builder()
-                .id(1L)
-                .name("Resource")
-                .hours(100)
-                .cost(1290.00)
-                .task(task)
-                .build();
-
         Exception exception = assertThrows(EntityNotFoundException.class, () ->
                 resourceService.add(resource.getName(), resource.getHours(), resource.getCost(),
                         resource.getTask().getId()));
@@ -88,18 +78,6 @@ class ResourceServiceTest {
 
     @Test
     public void resourceEdit_resourceExist_fieldsChanged() {
-        Member member = new Member();
-        Milestone milestone = new Milestone();
-        Task task = new Task(2L, "Task", false, false, "Document", milestone, new ArrayList<>(), member);
-
-        Resource resource = Resource.builder()
-                .id(1L)
-                .name("Resource")
-                .hours(100)
-                .cost(1290.00)
-                .task(task)
-                .build();
-
         String newName = "New milestone";
         Integer newHours = 80;
         Double newCast = 5000.00;
@@ -118,18 +96,6 @@ class ResourceServiceTest {
 
     @Test
     void testGetById_objectExist() {
-        Member member = new Member();
-        Milestone milestone = new Milestone();
-        Task task = new Task(2L, "Task", false, false, "Document", milestone, new ArrayList<>(), member);
-
-        Resource resource = Resource.builder()
-                .id(1L)
-                .name("Resource")
-                .hours(100)
-                .cost(1290.00)
-                .task(task)
-                .build();
-
         when(resourceRepository.findById(resource.getId())).thenReturn(Optional.of(resource));
         Resource expectedResource = resourceService.getById(resource.getId());
 
@@ -144,18 +110,6 @@ class ResourceServiceTest {
 
     @Test
     void testGetById_objectNotExist() {
-        Member member = new Member();
-        Milestone milestone = new Milestone();
-        Task task = new Task(2L, "Task", false, false, "Document", milestone, new ArrayList<>(), member);
-
-        Resource resource = Resource.builder()
-                .id(1L)
-                .name("Resource")
-                .hours(100)
-                .cost(1290.00)
-                .task(task)
-                .build();
-
         Exception exception = assertThrows(EntityNotFoundException.class,
                 () -> resourceService.getById(resource.getId() + 1));
 
@@ -169,19 +123,7 @@ class ResourceServiceTest {
 
     @Test
     void removeById_oneObjectDeleted() {
-        Member member = new Member();
-        Milestone milestone = new Milestone();
-        Task task = new Task(2L, "Task", false, false, "Document", milestone, new ArrayList<>(), member);
-
         when(taskRepository.findById(task.getId())).thenReturn(Optional.of(task));
-
-        Resource resource = Resource.builder()
-                .id(1L)
-                .name("Resource")
-                .hours(100)
-                .cost(1290.00)
-                .task(task)
-                .build();
 
         resourceService.add(resource.getName(), resource.getHours(), resource.getCost(),
                 resource.getTask().getId());

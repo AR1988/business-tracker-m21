@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -23,13 +23,13 @@ public class TaskMapperTest {
 
     @BeforeEach
     public void beforeEachTest() {
-        User user = new User(1L, "Ivan", "Petrov", "Boss", "img-url");
+        User user = new User("Ivan", "Petrov", "Boss", "img-url");
 
         Project project = new Project();
         Roadmap roadmap = new Roadmap();
-        Member member = new Member(1L, project, user);
-        Milestone milestone = new Milestone(3L, "Milestone", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
-        task = new Task(2L, "Task", false, false, "Document", milestone, new ArrayList<>(), member);
+        Member member = new Member(project, user);
+        Milestone milestone = new Milestone("Milestone", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, Collections.emptyList());
+        task = new Task(2L, "Task", false, false, milestone, member, Collections.emptyList());
     }
 
     @Test
@@ -37,7 +37,6 @@ public class TaskMapperTest {
         TaskDto taskDto = taskMapper.toDto(task);
 
         assertEquals(task.getId(), taskDto.id);
-        assertEquals(task.getDelivery(), taskDto.delivery);
         assertEquals(task.isActive(), taskDto.active);
         assertEquals(task.isFinished(), taskDto.finished);
         assertEquals(task.getResponsibleMember().getId(), taskDto.memberId);

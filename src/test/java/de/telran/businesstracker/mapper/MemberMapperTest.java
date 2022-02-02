@@ -21,8 +21,8 @@ public class MemberMapperTest {
 
     @BeforeEach
     public void beforeEachTest() {
-        User user = new User(1L, "Ivan", "Petrov", "Boss", "img-url");
-        Project project = new Project(1L, "Some project", user);
+        User user = new User("Ivan", "Petrov", "Boss", "img-url");
+        Project project = new Project("Some project", user);
         member = new Member(1L, project, user);
     }
 

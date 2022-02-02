@@ -32,7 +32,7 @@ class IntegrationTest {
         Project project = new Project();
         projectRepository.save(project);
 
-        Roadmap roadmap = Roadmap.builder().build();
+        Roadmap roadmap = new Roadmap();
         roadmapRepository.save(roadmap);
 
         Member member = new Member();
@@ -41,18 +41,18 @@ class IntegrationTest {
         Milestone milestone = new Milestone();
         milestoneRepository.save(milestone);
 
-        Task task = taskService.add("Task1", false, false, "Document", milestone.getId(), member.getId());
+        Task task = taskService.add("Task1", false, false, milestone.getId(), member.getId());
         Assertions.assertEquals("Task1", task.getName());
-        Assertions.assertEquals(false, task.isFinished());
+        Assertions.assertFalse(task.isFinished());
         Assertions.assertEquals(milestone.getId(), task.getMilestone().getId());
         Assertions.assertEquals(member.getId(), task.getResponsibleMember().getId());
 
-        taskService.edit(task.getId(), "Task2", true, false, "Document");
+        taskService.edit(task.getId(), "Task2", true, false);
         Task editedTask = taskService.getById(task.getId());
         Assertions.assertEquals("Task2", editedTask.getName());
-        Assertions.assertEquals(true, editedTask.isFinished());
+        Assertions.assertTrue(editedTask.isFinished());
 
-        Task task1 = taskService.add("Task1", false, false, "Document", milestone.getId(), member.getId());
+        Task task1 = taskService.add("Task1", false, false, milestone.getId(), member.getId());
         Assertions.assertEquals("Task2", taskService.getById(task.getId()).getName());
 
         taskService.removeById(task1.getId());

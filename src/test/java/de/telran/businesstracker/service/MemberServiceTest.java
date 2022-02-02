@@ -16,9 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -45,10 +43,10 @@ class MemberServiceTest {
 
     @BeforeEach
     public void beforeEachTest() {
-        user = new User(1L, "Ivan", "Petrov", "Boss", "img-url");
-        user2 = new User(1L, "Vasja", "Pupkin", "Dev", "img-url");
-        project = new Project(1L, "Some project", user);
-        member = new Member(1L, project, user);
+        user = new User(5L, "Ivan", "Petrov", "Boss", "img-url", new LinkedHashSet<>(), new ArrayList<>());
+        user2 = new User(6L, "Vasja", "Pupkin", "Dev", "img-url", new LinkedHashSet<>(), new ArrayList<>());
+        project = new Project(4L, "Great project", user, new LinkedHashSet<>(), new LinkedHashSet<>());
+        member = new Member(10L, project, user);
     }
 
     @Test

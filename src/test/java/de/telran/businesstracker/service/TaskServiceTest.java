@@ -16,10 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -46,12 +43,12 @@ class TaskServiceTest {
 
     @BeforeEach
     public void beforeEachTest() {
-        User user = new User("Ivan", "Petrov", "Boss", "img-url");
-        project = new Project(1L, "Some project", user);
-        Roadmap roadmap = new Roadmap();
-        member = new Member(1L, project, user);
-        milestone = new Milestone(3L, "Milestone", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
-        task = new Task(2L, "Task", false, false, "Document", milestone, new ArrayList<>(), member);
+        User user = new User(5L, "Ivan", "Petrov", "Boss", "img-url", new LinkedHashSet<>(), new ArrayList<>());
+        project = new Project(4L, "Great project", user, new LinkedHashSet<>(), new LinkedHashSet<>());
+        Roadmap roadmap = new Roadmap(3L, "Roadmap", LocalDate.now(), project, new LinkedHashSet<>());
+        member = new Member(13L, new Project(), new User());
+        milestone = new Milestone(1L, "Milestone", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>(), new LinkedHashSet<>());
+        task = new Task(9L, "Task", false, false, milestone, member, new ArrayList<>());
     }
 
     @Test
@@ -60,7 +57,7 @@ class TaskServiceTest {
                 .thenReturn(Optional.of(member));
         when(milestoneRepository.findById(milestone.getId())).thenReturn(Optional.of(milestone));
 
-        taskService.add(task.getName(), task.isFinished(), task.isActive(), task.getDelivery(), task.getMilestone().getId(), task.getResponsibleMember().getId());
+        taskService.add(task.getName(), task.isFinished(), task.isActive(), task.getMilestone().getId(), task.getResponsibleMember().getId());
 
         verify(taskRepository, times(1)).save(argThat(savedTask -> savedTask.getName().equals(task.getName()) &&
                 !savedTask.isActive() && savedTask.getMilestone().getId().equals(milestone.getId()) &&
@@ -71,7 +68,7 @@ class TaskServiceTest {
     @Test
     public void testAdd_memberDoesNotExist_EntityNotFoundException() {
         Exception exception = assertThrows(EntityNotFoundException.class, () ->
-                taskService.add(task.getName(), task.isFinished(), task.isActive(), task.getDelivery(), task.getMilestone().getId(), task.getResponsibleMember().getId())
+                taskService.add(task.getName(), task.isFinished(), task.isActive(), task.getMilestone().getId(), task.getResponsibleMember().getId())
         );
 
         verify(memberRepository, times(1)).findById(any());
@@ -83,14 +80,13 @@ class TaskServiceTest {
         String name = "newTask";
 
         when(taskRepository.findById(task.getId())).thenReturn(Optional.of(task));
-        taskService.edit(task.getId(), name, task.isFinished(), task.isActive(), task.getDelivery());
+        taskService.edit(task.getId(), name, task.isFinished(), task.isActive());
 
         verify(taskRepository, times(1)).save(argThat(
                 savedTask -> savedTask.getName().equals(name) &&
                         savedTask.getId().equals(task.getId()) &&
                         savedTask.isFinished() == task.isFinished() &&
                         savedTask.isActive() == task.isActive() &&
-                        savedTask.getDelivery().equals(task.getDelivery()) &&
                         savedTask.getMilestone().getId().equals(milestone.getId()) &&
                         savedTask.getResponsibleMember().getId().equals(member.getId()))
         );
@@ -99,14 +95,13 @@ class TaskServiceTest {
     @Test
     public void testEdit_taskExist_fieldsActiveChanged() {
         when(taskRepository.findById(task.getId())).thenReturn(Optional.of(task));
-        taskService.edit(task.getId(), task.getName(), task.isFinished(), true, task.getDelivery());
+        taskService.edit(task.getId(), task.getName(), task.isFinished(), true);
 
         verify(taskRepository, times(1)).save(argThat(
                 savedTask -> savedTask.getName().equals(task.getName()) &&
                         savedTask.getId().equals(task.getId()) &&
                         savedTask.isFinished() == task.isFinished() &&
-                        savedTask.isActive() == true &&
-                        savedTask.getDelivery().equals(task.getDelivery()) &&
+                        savedTask.isActive() &&
                         savedTask.getMilestone().getId().equals(milestone.getId()) &&
                         savedTask.getResponsibleMember().getId().equals(member.getId()))
         );
@@ -115,32 +110,13 @@ class TaskServiceTest {
     @Test
     public void testEdit_taskExist_fieldsFinishedChanged() {
         when(taskRepository.findById(task.getId())).thenReturn(Optional.of(task));
-        taskService.edit(task.getId(), task.getName(), true, task.isActive(), task.getDelivery());
+        taskService.edit(task.getId(), task.getName(), true, task.isActive());
 
         verify(taskRepository, times(1)).save(argThat(
                 savedTask -> savedTask.getName().equals(task.getName()) &&
                         savedTask.getId().equals(task.getId()) &&
-                        savedTask.isFinished() == true &&
+                        savedTask.isFinished() &&
                         savedTask.isActive() == task.isActive() &&
-                        savedTask.getDelivery().equals(task.getDelivery()) &&
-                        savedTask.getMilestone().getId().equals(milestone.getId()) &&
-                        savedTask.getResponsibleMember().getId().equals(member.getId()))
-        );
-    }
-
-    @Test
-    public void testEdit_taskExist_fieldsDeliveryChanged() {
-        String newDelivery = "SomeNewDelivery";
-
-        when(taskRepository.findById(task.getId())).thenReturn(Optional.of(task));
-        taskService.edit(task.getId(), task.getName(), task.isFinished(), task.isActive(), newDelivery);
-
-        verify(taskRepository, times(1)).save(argThat(
-                savedTask -> savedTask.getName().equals(task.getName()) &&
-                        savedTask.getId().equals(task.getId()) &&
-                        savedTask.isFinished() == task.isFinished() &&
-                        savedTask.isActive() == task.isActive() &&
-                        savedTask.getDelivery().equals(newDelivery) &&
                         savedTask.getMilestone().getId().equals(milestone.getId()) &&
                         savedTask.getResponsibleMember().getId().equals(member.getId()))
         );
@@ -154,7 +130,6 @@ class TaskServiceTest {
         assertEquals(task1.getName(), task.getName());
         assertEquals(task1.isActive(), task.isActive());
         assertEquals(task1.isFinished(), task.isFinished());
-        assertEquals(task1.getDelivery(), task.getDelivery());
         assertEquals(task1.getMilestone(), task.getMilestone());
         assertEquals(task1.getResponsibleMember(), task.getResponsibleMember());
 
@@ -166,9 +141,9 @@ class TaskServiceTest {
     void testGetTasksByProjectAndActive_fourElementsFound() {
         List<Task> tasks = Arrays.asList(
                 task,
-                new Task(3L, "Task_02", false, true, "Document", milestone, new ArrayList<>(), member),
-                new Task(4L, "Task_03", false, true, "Document", milestone, new ArrayList<>(), member),
-                new Task(5L, "Task_04", false, true, "Document", milestone, new ArrayList<>(), member)
+                new Task(3L, "Task_02", false, true, milestone, member, Collections.emptyList()),
+                new Task(4L, "Task_03", false, true, milestone, member, Collections.emptyList()),
+                new Task(5L, "Task_04", false, true, milestone, member, Collections.emptyList())
         );
 
         when(taskRepository.findAllByMilestone_Roadmap_ProjectAndActiveTrue(project)).thenReturn(tasks);
@@ -198,9 +173,12 @@ class TaskServiceTest {
     void testGetTasksByMileStone_fourElementsFound() {
         List<Task> tasks = Arrays.asList(
                 task,
-                new Task(3L, "Task_02", false, true, "Document", milestone, new ArrayList<>(), member),
-                new Task(4L, "Task_03", false, true, "Document", milestone, new ArrayList<>(), member),
-                new Task(5L, "Task_04", false, true, "Document", milestone, new ArrayList<>(), member)
+                new Task(3L, "Task_02", false, true, milestone, member, Collections.emptyList()
+                ),
+                new Task(4L, "Task_03", false, true, milestone, member, Collections.emptyList()
+                ),
+                new Task(5L, "Task_04", false, true, milestone, member, Collections.emptyList()
+                )
         );
 
         when(taskRepository.findAllByMilestone(milestone)).thenReturn(tasks);
@@ -247,7 +225,7 @@ class TaskServiceTest {
         when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
         when(milestoneRepository.findById(milestone.getId())).thenReturn(Optional.of(milestone));
 
-        taskService.add(task.getName(), task.isFinished(), task.isActive(), task.getDelivery(), task.getMilestone().getId(), task.getResponsibleMember().getId());
+        taskService.add(task.getName(), task.isFinished(), task.isActive(), task.getMilestone().getId(), task.getResponsibleMember().getId());
         taskService.removeById(task.getId());
 
         List<Task> capturedTasks = taskArgumentCaptor.getAllValues();

@@ -7,6 +7,7 @@ import de.telran.businesstracker.model.User;
 import de.telran.businesstracker.repositories.MilestoneRepository;
 import de.telran.businesstracker.repositories.ProjectRepository;
 import de.telran.businesstracker.repositories.RoadmapRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,10 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -36,12 +34,20 @@ public class KpiServiceTest {
     @InjectMocks
     KpiService kpiService;
 
+    private Project project;
+    private Roadmap roadmap;
+    private Milestone milestone;
+
+    @BeforeEach
+    public void beforeEachTest() {
+        User user = new User(5L, "Ivan", "Petrov", "Boss", "img-url", new LinkedHashSet<>(), new ArrayList<>());
+        project = new Project(4L, "Great project", user, new LinkedHashSet<>(), new LinkedHashSet<>());
+        roadmap = new Roadmap(3L, "Roadmap", LocalDate.now(), project, new LinkedHashSet<>());
+        milestone = new Milestone(1L, "Milestone", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>(), new LinkedHashSet<>());
+    }
+
     @Test
     public void testAdd_success() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap = new Roadmap(3L, "Roadmap", LocalDate.now(), project);
-        Milestone milestone = new Milestone(1L, "Milestone", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
         when(milestoneRepository.findById(milestone.getId())).thenReturn(Optional.of(milestone));
 
         kpiService.add(milestone.getId(), "some kpi name");
@@ -52,12 +58,6 @@ public class KpiServiceTest {
 
     @Test
     public void testAdd_roadmapDoesNotExist_EntityNotFoundException() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap = new Roadmap(3L, "Roadmap", LocalDate.now(), project);
-
-        Milestone milestone = new Milestone(1L, "Milestone", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
-
         Exception exception = assertThrows(EntityNotFoundException.class, () ->
                 kpiService.add(milestone.getId(), "some kpi name"));
 
@@ -67,17 +67,14 @@ public class KpiServiceTest {
 
     @Test
     public void testGetAllKpisByProject_twoRoadMapsWithEachOneMileStones_sixElementFound() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap1 = new Roadmap(3L, "Roadmap_01", LocalDate.now(), project);
-        Milestone milestone1 = new Milestone(1L, "Milestone_01", LocalDate.now(), LocalDate.now().plusDays(10), roadmap1, new ArrayList<>());
+        Milestone milestone1 = milestone;
         milestone1.addKpi("kpi_01_01");
         milestone1.addKpi("kpi_01_02");
         milestone1.addKpi("kpi_01_03");
         milestone1.addKpi("kpi_01_04");
 
-        Roadmap roadmap2 = new Roadmap(6L, "Roadmap_02", LocalDate.now(), project);
-        Milestone milestone2 = new Milestone(7L, "Milestone_02", LocalDate.now(), LocalDate.now().plusDays(10), roadmap2, new ArrayList<>());
+        Roadmap roadmap2 = new Roadmap("Roadmap_02", LocalDate.now(), project);
+        Milestone milestone2 = new Milestone("Milestone_02", LocalDate.now(), LocalDate.now().plusDays(10), roadmap2, new ArrayList<>());
         milestone2.addKpi("kpi_02_01");
         milestone2.addKpi("kpi_02_02");
 
@@ -99,20 +96,17 @@ public class KpiServiceTest {
 
     @Test
     public void testGetAllKpisByProject_oneRoadMapWithTreeMileStones_sevenElementFound() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap = new Roadmap(3L, "Roadmap_01", LocalDate.now(), project);
-        Milestone milestone1 = new Milestone(1L, "Milestone_01", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
+        Milestone milestone1 = milestone;
         milestone1.addKpi("kpi_01_01");
         milestone1.addKpi("kpi_01_02");
         milestone1.addKpi("kpi_01_03");
         milestone1.addKpi("kpi_01_04");
 
-        Milestone milestone2 = new Milestone(7L, "Milestone_02", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
+        Milestone milestone2 = new Milestone("Milestone_02", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
         milestone2.addKpi("kpi_02_01");
         milestone2.addKpi("kpi_02_02");
 
-        Milestone milestone3 = new Milestone(13L, "Milestone_03", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
+        Milestone milestone3 = new Milestone("Milestone_03", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
         milestone2.addKpi("kpi_03_01");
 
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
@@ -135,11 +129,8 @@ public class KpiServiceTest {
 
     @Test
     public void testGetAllKpisByProject_oneRoadMapWithTwoMileStones_noKpiExist_emptyList() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap1 = new Roadmap(3L, "Roadmap_01", LocalDate.now(), project);
-        Milestone milestone1 = new Milestone(1L, "Milestone_01", LocalDate.now(), LocalDate.now().plusDays(10), roadmap1, new ArrayList<>());
-        Milestone milestone2 = new Milestone(7L, "Milestone_02", LocalDate.now(), LocalDate.now().plusDays(10), roadmap1, new ArrayList<>());
+        Milestone milestone1 = new Milestone("Milestone_01", roadmap, new ArrayList<>());
+        Milestone milestone2 = new Milestone("Milestone_02", roadmap, new ArrayList<>());
 
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
         when(milestoneRepository.findAllByRoadmapProject(project)).thenReturn(Arrays.asList(milestone1, milestone2));
@@ -153,10 +144,6 @@ public class KpiServiceTest {
 
     @Test
     public void testGetAllKpiByMileStone_fourElementFound() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap = new Roadmap(3L, "Roadmap_01", LocalDate.now(), project);
-        Milestone milestone = new Milestone(1L, "Milestone_01", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
         milestone.addKpi("kpi_01_01");
         milestone.addKpi("kpi_01_02");
         milestone.addKpi("kpi_01_03");
@@ -171,10 +158,6 @@ public class KpiServiceTest {
 
     @Test
     public void testGetAllKpiByBMileStone_emptyList() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap = new Roadmap(3L, "Roadmap_01", LocalDate.now(), project);
-        Milestone milestone = new Milestone(1L, "Milestone_01", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
 
         when(milestoneRepository.findById(milestone.getId())).thenReturn(Optional.of(milestone));
         List<String> kpis = kpiService.getAllKpiByMileStone(milestone.getId());
@@ -186,18 +169,15 @@ public class KpiServiceTest {
 
     @Test
     public void testGetAllKpiByRoadMap_oneProjectOneRoadMapsTreeMileStoneOnEachRoadMap_fourElementFound() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap = new Roadmap(3L, "Roadmap_01", LocalDate.now(), project);
 
-        Milestone milestone1 = new Milestone(1L, "Milestone_01", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
+        Milestone milestone1 = new Milestone("Milestone_01", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
         milestone1.addKpi("kpi_01_01");
 
-        Milestone milestone2 = new Milestone(9L, "Milestone_02", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
+        Milestone milestone2 = new Milestone("Milestone_02", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
         milestone2.addKpi("kpi_01_01");
         milestone2.addKpi("kpi_01_02");
 
-        Milestone milestone3 = new Milestone(8L, "Milestone_03", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
+        Milestone milestone3 = new Milestone("Milestone_03", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
         milestone3.addKpi("kpi_01_01");
 
         when(roadmapRepository.findById(roadmap.getId())).thenReturn(Optional.of(roadmap));
@@ -214,10 +194,6 @@ public class KpiServiceTest {
 
     @Test
     public void testGetAllKpiByRoadMap_emptyList() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap = new Roadmap(3L, "Roadmap_01", LocalDate.now(), project);
-
         when(roadmapRepository.findById(roadmap.getId())).thenReturn(Optional.of(roadmap));
         List<String> kpis = kpiService.getAllKpiByRoadMap(roadmap.getId());
 
@@ -227,15 +203,8 @@ public class KpiServiceTest {
 
     @Test
     public void testRemoveKpi_kpiRemoved() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap = new Roadmap(3L, "Roadmap_01", LocalDate.now(), project);
-        Milestone milestone = new Milestone(1L, "Milestone_01", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
         milestone.addKpi("kpi_01_01");
         milestone.addKpi("kpi_01_02");
-
-        Milestone milestoneAfterRemovingKpi = new Milestone(1L, "Milestone_01", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
-        milestoneAfterRemovingKpi.addKpi("kpi_01_02");
 
         when(milestoneRepository.findById(milestone.getId())).thenReturn(Optional.of(milestone));
 
@@ -244,20 +213,15 @@ public class KpiServiceTest {
         verify(milestoneRepository, times(1)).findById(milestone.getId());
         verify(milestoneRepository, times(1)).save(argThat(
                 argument ->
-                        argument.getId().equals(milestoneAfterRemovingKpi.getId()) &&
-                                argument.getKpis().size() == milestoneAfterRemovingKpi.getKpis().size() &&
-                                argument.getName().equals(milestoneAfterRemovingKpi.getName()) &&
+                        argument.getId().equals(milestone.getId()) &&
+                                argument.getKpis().size() == 1 &&
+                                argument.getName().equals(milestone.getName()) &&
                                 !argument.getKpis().contains("kpi_01_01")
         ));
     }
 
     @Test
     public void testRemoveKpi_kpiNotExist_EntityNotFoundException() {
-        User user = new User();
-        Project project = new Project(4L, "Great project", user);
-        Roadmap roadmap = new Roadmap(3L, "Roadmap_01", LocalDate.now(), project);
-        Milestone milestone = new Milestone(1L, "Milestone_01", LocalDate.now(), LocalDate.now().plusDays(10), roadmap, new ArrayList<>());
-
         when(milestoneRepository.findById(milestone.getId())).thenReturn(Optional.of(milestone));
 
         Exception exception = assertThrows(EntityNotFoundException.class, () ->

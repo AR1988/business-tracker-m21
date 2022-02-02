@@ -8,6 +8,7 @@ import de.telran.businesstracker.repositories.ProjectRepository;
 import de.telran.businesstracker.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class MemberService {
     static final String PROJECT_DOES_NOT_EXIST = "Error! This project doesn't exist in our DB";
     static final String USER_DOES_NOT_EXIST = "Error! This user doesn't exist in our DB";
     static final String MEMBER_DOES_NOT_EXIST = "Error! This member doesn't exist in our DB";
+    static final String MEMBER_ALREADY_EXIST = "Error! This member already exist by this project";
 
     final MemberRepository memberRepository;
     final ProjectRepository projectRepository;
@@ -29,15 +31,19 @@ public class MemberService {
     }
 
     public Member add(Long projectId, Long userId) {
-        Project project = projectRepository.findById(projectId).orElseThrow(() -> new EntityNotFoundException(PROJECT_DOES_NOT_EXIST));
+        Project project = getProjectById(projectId);
         User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(USER_DOES_NOT_EXIST));
+
+        for (Member projectMember : project.getMembers())
+            if (projectMember.getUser().getId().equals(userId)) throw new EntityExistsException(MEMBER_ALREADY_EXIST);
+
         Member member = new Member(project, user);
         return memberRepository.save(member);
 
     }
 
     public List<Member> getAllByProjectId(long projectId) {
-        Project project = projectRepository.findById(projectId).orElseThrow(() -> new EntityNotFoundException(PROJECT_DOES_NOT_EXIST));
+        Project project = getProjectById(projectId);
         return memberRepository.findAllByProject(project);
     }
 
@@ -47,6 +53,10 @@ public class MemberService {
 
     public void removeById(Long id) {
         memberRepository.deleteById(id);
+    }
+
+    private Project getProjectById(Long projectId) {
+        return projectRepository.findById(projectId).orElseThrow(() -> new EntityNotFoundException(PROJECT_DOES_NOT_EXIST));
     }
 }
 

@@ -1,13 +1,15 @@
 package de.telran.businesstracker.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Objects;
+import java.util.*;
 
 
 @Entity
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -27,6 +29,12 @@ public class User {
     @Setter
     private String img;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private Set<Project> projects = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<Member> members = new ArrayList<>();
+
     public User(String name, String lastName, String position, String img) {
         this.name = name;
         this.lastName = lastName;
@@ -44,11 +52,11 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id.equals(user.id) && Objects.equals(name, user.name) && Objects.equals(lastName, user.lastName) && Objects.equals(position, user.position) && Objects.equals(img, user.img);
+        return id.equals(user.id) && name.equals(user.name) && lastName.equals(user.lastName) && Objects.equals(position, user.position) && Objects.equals(img, user.img);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, lastName, position, img);
+        return Objects.hash(id, name, lastName);
     }
 }

@@ -37,7 +37,7 @@ public class TaskController {
     @Operation(summary = "add new task")
     @PostMapping("")
     public ResponseEntity<TaskDto> createTask(@RequestBody @Valid TaskToAddDto taskDto) throws URISyntaxException {
-        Task task = taskService.add(taskDto.name, taskDto.finished, taskDto.active, taskDto.delivery, taskDto.mileStoneId, taskDto.memberId);
+        Task task = taskService.add(taskDto.name, taskDto.finished, taskDto.active, taskDto.mileStoneId, taskDto.memberId);
         TaskDto dto = taskMapper.toDto(task);
 
         for (ResourceDto resource : taskDto.resources)
@@ -52,7 +52,7 @@ public class TaskController {
     @PutMapping("")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateTask(@RequestBody @Valid TaskDto taskDto) throws HttpClientErrorException.BadRequest {
-        taskService.edit(taskDto.id, taskDto.name, taskDto.finished, taskDto.active, taskDto.delivery);
+        taskService.edit(taskDto.id, taskDto.name, taskDto.finished, taskDto.active);
     }
 
     @Operation(summary = "get list of active tasks by project id")
